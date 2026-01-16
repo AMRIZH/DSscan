@@ -49,6 +49,9 @@ def create_app(config_name=None):
         db.create_all()
         create_default_admin(app)
     
+    # Preload ML model at startup
+    preload_model(app)
+    
     app.logger.info('BrightStart application started successfully')
     
     return app
@@ -176,3 +179,48 @@ def create_default_admin(app):
         db.session.add(admin_user)
         db.session.commit()
         app.logger.info(f"Default admin user '{app.config['ADMIN_USERNAME']}' created")
+
+
+def preload_model(app):
+    """Preload ML model at application startup"""
+    from .services.inference import InferenceService
+    
+    print("\n" + "="*60)
+    print("🤖 LOADING ML MODEL")
+    print("="*60)
+    
+    model_path = app.config.get('MODEL_PATH')
+    download_url = app.config.get('MODEL_DOWNLOAD_URL')
+    
+    print(f"  📁 Model path: {model_path}")
+    
+    # Check if model file exists
+    import os
+    if os.path.exists(model_path):
+        model_size = os.path.getsize(model_path) / (1024 * 1024)
+        print(f"  ✅ Model file found ({model_size:.1f} MB)")
+    else:
+        print(f"  ⚠️  Model file not found")
+        if download_url:
+            print(f"  📥 Download URL configured: {download_url[:50]}...")
+        else:
+            print(f"  ❌ No download URL configured!")
+            print("="*60 + "\n")
+            return
+    
+    # Load the model
+    print(f"  ⏳ Loading model into memory...")
+    
+    try:
+        model = InferenceService.initialize_model(model_path, download_url)
+        
+        if model is not None:
+            print(f"  ✅ Model loaded successfully!")
+            print(f"  📊 Input shape: {model.input_shape}")
+            print(f"  📊 Output shape: {model.output_shape}")
+        else:
+            print(f"  ❌ Failed to load model")
+    except Exception as e:
+        print(f"  ❌ Error loading model: {str(e)}")
+    
+    print("="*60 + "\n")

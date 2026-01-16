@@ -25,6 +25,72 @@ class InferenceService:
     }
     
     @classmethod
+    def initialize_model(cls, model_path, download_url=None):
+        """
+        Initialize model at application startup (without Flask context)
+        
+        Args:
+            model_path: path to model file
+            download_url: URL to download if model doesn't exist
+        
+        Returns:
+            loaded model or None
+        """
+        global _model, _model_loaded
+        
+        if _model_loaded and _model is not None:
+            return _model
+        
+        # Check if model exists, download if not
+        if not os.path.exists(model_path):
+            logger.warning(f"Model not found at {model_path}")
+            
+            if download_url:
+                logger.info("Attempting to download model...")
+                if not cls.download_model(download_url, model_path):
+                    logger.error("Failed to download model")
+                    return None
+            else:
+                logger.error("No model download URL configured")
+                return None
+        
+        try:
+            # Configure TensorFlow to use GPU if available
+            import tensorflow as tf
+            
+            # Suppress TF warnings for cleaner output
+            tf.get_logger().setLevel('ERROR')
+            
+            # Check for GPU
+            gpus = tf.config.list_physical_devices('GPU')
+            if gpus:
+                logger.info(f"GPU detected: {gpus}")
+                print(f"  🎮 GPU detected: {len(gpus)} device(s)")
+                # Allow memory growth to prevent OOM
+                for gpu in gpus:
+                    tf.config.experimental.set_memory_growth(gpu, True)
+            else:
+                logger.info("No GPU detected, using CPU")
+                print(f"  💻 Using CPU for inference")
+            
+            # Load model
+            logger.info(f"Loading model from {model_path}...")
+            _model = tf.keras.models.load_model(model_path)
+            _model_loaded = True
+            
+            logger.info("Model loaded successfully")
+            logger.info(f"Model input shape: {_model.input_shape}")
+            logger.info(f"Model output shape: {_model.output_shape}")
+            
+            return _model
+            
+        except Exception as e:
+            logger.error(f"Failed to load model: {str(e)}")
+            _model = None
+            _model_loaded = False
+            return None
+    
+    @classmethod
     def download_model(cls, url, destination):
         """
         Download model from URL
@@ -76,19 +142,23 @@ class InferenceService:
     @classmethod
     def load_model(cls, model_path=None, download_url=None):
         """
-        Load the Keras model
+        Get the loaded model (should already be initialized at startup)
         
         Args:
-            model_path: path to model file
-            download_url: URL to download if model doesn't exist
+            model_path: path to model file (optional, uses config if not provided)
+            download_url: URL to download if model doesn't exist (optional)
         
         Returns:
             loaded model or None
         """
         global _model, _model_loaded
         
+        # Return cached model if already loaded
         if _model_loaded and _model is not None:
             return _model
+        
+        # Fallback: try to load if not initialized at startup
+        logger.warning("Model was not preloaded, loading now...")
         
         # Get paths from config if not provided
         if model_path is None:
@@ -96,49 +166,7 @@ class InferenceService:
         if download_url is None:
             download_url = current_app.config.get('MODEL_DOWNLOAD_URL')
         
-        # Check if model exists, download if not
-        if not os.path.exists(model_path):
-            logger.warning(f"Model not found at {model_path}")
-            
-            if download_url:
-                logger.info("Attempting to download model...")
-                if not cls.download_model(download_url, model_path):
-                    logger.error("Failed to download model")
-                    return None
-            else:
-                logger.error("No model download URL configured")
-                return None
-        
-        try:
-            # Configure TensorFlow to use GPU if available
-            import tensorflow as tf
-            
-            # Check for GPU
-            gpus = tf.config.list_physical_devices('GPU')
-            if gpus:
-                logger.info(f"GPU detected: {gpus}")
-                # Allow memory growth to prevent OOM
-                for gpu in gpus:
-                    tf.config.experimental.set_memory_growth(gpu, True)
-            else:
-                logger.info("No GPU detected, using CPU")
-            
-            # Load model
-            logger.info(f"Loading model from {model_path}...")
-            _model = tf.keras.models.load_model(model_path)
-            _model_loaded = True
-            
-            logger.info("Model loaded successfully")
-            logger.info(f"Model input shape: {_model.input_shape}")
-            logger.info(f"Model output shape: {_model.output_shape}")
-            
-            return _model
-            
-        except Exception as e:
-            logger.error(f"Failed to load model: {str(e)}")
-            _model = None
-            _model_loaded = False
-            return None
+        return cls.initialize_model(model_path, download_url)
     
     @classmethod
     def predict(cls, preprocessed_image):
