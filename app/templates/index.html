@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+
+{% block title %}BrightStart - Deteksi Sindrom Down{% endblock %}
+
+{% block content %}
+<!-- Hero Section - No gap with navbar -->
+<section class="hero-section position-relative overflow-hidden">
+    <div class="hero-bg"></div>
+    <div class="container">
+        <div class="row align-items-center py-5" style="min-height: calc(80vh - 56px);">
+            <div class="col-lg-6 text-center text-lg-start">
+                <div class="hero-content">
+                    <span class="badge bg-primary-subtle text-primary mb-3 px-3 py-2 rounded-pill">
+                        <i class="bi bi-cpu me-1"></i> Powered by AI
+                    </span>
+                    <h1 class="display-4 fw-bold text-dark mb-4">
+                        Deteksi <span class="text-primary">Sindrom Down</span> dengan Teknologi AI
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        BrightStart menggunakan teknologi Computer Vision dan Deep Learning untuk membantu 
+                        mendeteksi indikator Sindrom Down dari citra wajah secara cepat dan akurat.
+                    </p>
+                    <div class="d-flex flex-column flex-sm-row gap-3 justify-content-center justify-content-lg-start">
+                        {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                            <i class="bi bi-speedometer2 me-2"></i>Buka Dashboard
+                        </a>
+                        {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg px-4 shadow-sm">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Sekarang
+                        </a>
+                        {% endif %}
+                        <a href="#cara-kerja" class="btn btn-outline-primary btn-lg px-4">
+                            <i class="bi bi-info-circle me-2"></i>Pelajari Lebih Lanjut
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <div class="hero-image text-center">
+                    <div class="hero-card bg-white rounded-4 shadow-lg p-4 mx-auto" style="max-width: 400px;">
+                        <div class="hero-icon mb-3">
+                            <div class="icon-circle bg-primary-subtle mx-auto">
+                                <i class="bi bi-heart-pulse text-primary display-4"></i>
+                            </div>
+                        </div>
+                        <h4 class="fw-bold mb-2">Analisis Cepat</h4>
+                        <p class="text-muted mb-4">Unggah foto wajah dan dapatkan hasil analisis dalam hitungan detik</p>
+                        <div class="d-flex justify-content-around text-center">
+                            <div>
+                                <h3 class="fw-bold text-primary mb-0">95%+</h3>
+                                <small class="text-muted">Akurasi</small>
+                            </div>
+                            <div class="vr"></div>
+                            <div>
+                                <h3 class="fw-bold text-primary mb-0">&lt;3s</h3>
+                                <small class="text-muted">Waktu Proses</small>
+                            </div>
+                            <div class="vr"></div>
+                            <div>
+                                <h3 class="fw-bold text-primary mb-0">24/7</h3>
+                                <small class="text-muted">Tersedia</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5 bg-light" id="fitur">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Fitur Unggulan</h2>
+            <p class="text-muted">Teknologi canggih untuk membantu deteksi dini</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100 bg-white rounded-4 p-4 text-center shadow-sm">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle-sm bg-primary-subtle mx-auto">
+                            <i class="bi bi-camera text-primary fs-4"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold">Unggah atau Kamera</h5>
+                    <p class="text-muted small mb-0">Ambil gambar langsung dari kamera atau unggah dari perangkat Anda</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100 bg-white rounded-4 p-4 text-center shadow-sm">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle-sm bg-success-subtle mx-auto">
+                            <i class="bi bi-lightning text-success fs-4"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold">Proses Cepat</h5>
+                    <p class="text-muted small mb-0">Hasil analisis dalam hitungan detik menggunakan teknologi GPU</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100 bg-white rounded-4 p-4 text-center shadow-sm">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle-sm bg-info-subtle mx-auto">
+                            <i class="bi bi-shield-check text-info fs-4"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold">Aman & Privat</h5>
+                    <p class="text-muted small mb-0">Data Anda diproses dengan aman dan sesuai standar privasi</p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="feature-card h-100 bg-white rounded-4 p-4 text-center shadow-sm">
+                    <div class="feature-icon mb-3">
+                        <div class="icon-circle-sm bg-warning-subtle mx-auto">
+                            <i class="bi bi-graph-up text-warning fs-4"></i>
+                        </div>
+                    </div>
+                    <h5 class="fw-bold">Laporan Detail</h5>
+                    <p class="text-muted small mb-0">Dapatkan probabilitas dan tingkat keyakinan dari hasil analisis</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="how-it-works-section py-5" id="cara-kerja">
+    <div class="container py-4">
+        <div class="text-center mb-5">
+            <h2 class="fw-bold">Cara Kerja</h2>
+            <p class="text-muted">Tiga langkah mudah untuk mendapatkan hasil analisis</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number bg-primary text-white rounded-circle mx-auto mb-3">1</div>
+                    <h5 class="fw-bold">Unggah Gambar</h5>
+                    <p class="text-muted">Pilih foto wajah dari galeri atau ambil langsung menggunakan kamera</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number bg-primary text-white rounded-circle mx-auto mb-3">2</div>
+                    <h5 class="fw-bold">Proses AI</h5>
+                    <p class="text-muted">Model Deep Learning akan menganalisis citra wajah secara otomatis</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="step-card text-center">
+                    <div class="step-number bg-primary text-white rounded-circle mx-auto mb-3">3</div>
+                    <h5 class="fw-bold">Lihat Hasil</h5>
+                    <p class="text-muted">Dapatkan hasil klasifikasi beserta tingkat probabilitasnya</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Disclaimer Section -->
+<section class="disclaimer-section py-5 bg-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="alert alert-warning border-0 shadow-sm">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-exclamation-triangle-fill text-warning fs-4 me-3"></i>
+                        <div>
+                            <h5 class="alert-heading fw-bold mb-2">Penting untuk Diketahui</h5>
+                            <p class="mb-2">
+                                BrightStart adalah aplikasi untuk <strong>tujuan penelitian dan edukasi</strong>. 
+                                Hasil analisis dari aplikasi ini <strong>BUKAN merupakan diagnosis medis</strong>.
+                            </p>
+                            <p class="mb-0 small">
+                                Untuk diagnosis yang akurat, selalu konsultasikan dengan dokter atau tenaga medis profesional.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section py-5 bg-primary text-white">
+    <div class="container text-center py-4">
+        <h2 class="fw-bold mb-3">Siap Mencoba?</h2>
+        <p class="lead mb-4">Mulai analisis gambar Anda sekarang dengan BrightStart</p>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-speedometer2 me-2"></i>Buka Dashboard
+        </a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-light btn-lg px-5">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Masuk Sekarang
+        </a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

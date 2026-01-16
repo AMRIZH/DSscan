@@ -1,0 +1,40 @@
+# BrightStart - Docker Compose (CPU)
+# For deployment without GPU support
+
+version: '3.8'
+
+services:
+  brightstart:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: brightstart-cpu
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-informatika}
+      - MODEL_DOWNLOAD_URL=${MODEL_DOWNLOAD_URL:-}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+      - ./instance:/app/instance
+      - ./models:/app/models
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  uploads:
+  logs:
+  instance:
+  models:

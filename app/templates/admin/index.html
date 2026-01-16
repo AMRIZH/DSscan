@@ -1,0 +1,200 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <h2 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>Dashboard Admin</h2>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Total Pengguna</h6>
+                            <h2 class="mb-0">{{ total_users }}</h2>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Total Prediksi</h6>
+                            <h2 class="mb-0">{{ total_predictions }}</h2>
+                        </div>
+                        <i class="bi bi-clipboard-data fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Hasil Normal</h6>
+                            <h2 class="mb-0">{{ normal_count }}</h2>
+                        </div>
+                        <i class="bi bi-check-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3">
+            <div class="card bg-warning text-dark h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title mb-1">Down Syndrome</h6>
+                            <h2 class="mb-0">{{ ds_count }}</h2>
+                        </div>
+                        <i class="bi bi-exclamation-circle fs-1 opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Class Distribution -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Distribusi Hasil</h5>
+                </div>
+                <div class="card-body">
+                    {% if total_predictions > 0 %}
+                    <div class="mb-3">
+                        <label class="d-flex justify-content-between">
+                            <span>Normal</span>
+                            <span>{{ normal_count }} ({{ '%.1f' | format(normal_count / total_predictions * 100) }}%)</span>
+                        </label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-success" style="width: {{ normal_count / total_predictions * 100 }}%"></div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="d-flex justify-content-between">
+                            <span>Down Syndrome</span>
+                            <span>{{ ds_count }} ({{ '%.1f' | format(ds_count / total_predictions * 100) }}%)</span>
+                        </label>
+                        <div class="progress" style="height: 25px;">
+                            <div class="progress-bar bg-warning" style="width: {{ ds_count / total_predictions * 100 }}%"></div>
+                        </div>
+                    </div>
+                    <hr>
+                    <p class="mb-0">
+                        <strong>Rata-rata Keyakinan:</strong> {{ '%.2f' | format(avg_confidence * 100) }}%
+                    </p>
+                    {% else %}
+                    <p class="text-muted text-center">Belum ada data prediksi</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Top Users -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>Pengguna Teraktif</h5>
+                </div>
+                <div class="card-body">
+                    {% if top_users %}
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Username</th>
+                                <th>Jumlah Prediksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_users %}
+                            <tr>
+                                <td>{{ loop.index }}</td>
+                                <td>{{ user[0] }}</td>
+                                <td><span class="badge bg-primary">{{ user[1] }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-muted text-center">Belum ada data</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Recent Predictions -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Prediksi Terbaru</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_predictions %}
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pengguna</th>
+                                    <th>Hasil</th>
+                                    <th>Waktu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for pred in recent_predictions %}
+                                <tr>
+                                    <td>{{ pred.user.username }}</td>
+                                    <td>
+                                        <span class="badge {% if pred.result_class == 'Normal' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                            {{ pred.result_class }}
+                                        </span>
+                                    </td>
+                                    <td class="small">{{ pred.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">Belum ada prediksi</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Settings -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-gear me-2"></i>Pengaturan Aplikasi</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tbody>
+                            {% for key, value in settings.items() %}
+                            <tr>
+                                <td><strong>{{ key }}</strong></td>
+                                <td><code>{{ value }}</code></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+
+{% block title %}Masuk - BrightStart{% endblock %}
+
+{% block content %}
+<div class="login-page min-vh-100 d-flex align-items-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5 col-xl-4">
+                <div class="card border-0 shadow-lg rounded-4">
+                    <div class="card-body p-4 p-md-5">
+                        <!-- Logo -->
+                        <div class="text-center mb-4">
+                            <div class="icon-circle bg-primary-subtle mx-auto mb-3">
+                                <i class="bi bi-heart-pulse text-primary display-6"></i>
+                            </div>
+                            <h3 class="fw-bold">BrightStart</h3>
+                            <p class="text-muted">Masuk ke akun Anda</p>
+                        </div>
+                        
+                        <!-- Login Form -->
+                        <form method="POST" action="{{ url_for('auth.login') }}" novalidate>
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label for="username" class="form-label">
+                                    <i class="bi bi-person me-1"></i> Username
+                                </label>
+                                {{ form.username(class="form-control form-control-lg", placeholder="Masukkan username", autofocus=true) }}
+                                {% if form.username.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.username.errors[0] }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">
+                                    <i class="bi bi-lock me-1"></i> Password
+                                </label>
+                                <div class="input-group">
+                                    {{ form.password(class="form-control form-control-lg", placeholder="Masukkan password", id="password-input") }}
+                                    <button class="btn btn-outline-secondary" type="button" id="toggle-password">
+                                        <i class="bi bi-eye" id="toggle-password-icon"></i>
+                                    </button>
+                                </div>
+                                {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors[0] }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <div class="form-check">
+                                    {{ form.remember_me(class="form-check-input") }}
+                                    <label class="form-check-label" for="remember_me">
+                                        Ingat saya selama 30 hari
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="bi bi-box-arrow-in-right me-2"></i>Masuk
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Back to Home -->
+                        <div class="text-center mt-3">
+                            <a href="{{ url_for('main.index') }}" class="text-decoration-none text-muted">
+                                <i class="bi bi-arrow-left me-1"></i> Kembali ke Beranda
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Info Card -->
+                <div class="card border-0 bg-primary-subtle mt-4 rounded-4">
+                    <div class="card-body p-3 text-center">
+                        <small class="text-primary">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Aplikasi ini untuk tujuan penelitian dan edukasi.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Toggle password visibility
+document.getElementById('toggle-password').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password-input');
+    const toggleIcon = document.getElementById('toggle-password-icon');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('bi-eye');
+        toggleIcon.classList.add('bi-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('bi-eye-slash');
+        toggleIcon.classList.add('bi-eye');
+    }
+});
+</script>
+{% endblock %}

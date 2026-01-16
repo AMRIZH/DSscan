@@ -1,0 +1,3 @@
+# This directory contains ML models
+# Models are downloaded automatically from GitHub releases
+# See .env.example for MODEL_DOWNLOAD_URL configuration

@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - BrightStart{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-area {
+        border: 3px dashed #dee2e6;
+        border-radius: 1rem;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: #f8f9fa;
+    }
+    
+    .upload-area:hover,
+    .upload-area.drag-over {
+        border-color: var(--bs-primary);
+        background: rgba(13, 110, 253, 0.05);
+    }
+    
+    .upload-area.has-image {
+        border-style: solid;
+        border-color: var(--bs-success);
+    }
+    
+    .preview-image {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .camera-container {
+        position: relative;
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+    }
+    
+    #camera-video {
+        width: 100%;
+        min-height: 480px;
+        border-radius: 0.5rem;
+        background: #000;
+        object-fit: cover;
+    }
+    
+    /* Local loading overlay - only covers the upload card */
+    .card-loading-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        border-radius: 1rem;
+    }
+    
+    .loader {
+        width: 60px;
+        height: 60px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid var(--bs-primary);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .result-card {
+        animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .confidence-bar {
+        height: 30px;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .result-normal {
+        border-left: 5px solid var(--bs-success);
+    }
+    
+    .result-ds {
+        border-left: 5px solid var(--bs-warning);
+    }
+    
+    /* Make upload card position relative for overlay */
+    .upload-card {
+        position: relative;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-page py-4">
+    <div class="container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <h2 class="fw-bold mb-1">
+                    <i class="bi bi-speedometer2 text-primary me-2"></i>Dashboard
+                </h2>
+                <p class="text-muted">Selamat datang, {{ current_user.username }}! Unggah gambar untuk memulai analisis.</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Main Upload Section -->
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm rounded-4 upload-card">
+                    <!-- Loading Overlay (inside card) -->
+                    <div id="loading-overlay" class="card-loading-overlay d-none">
+                        <div class="loader mb-3"></div>
+                        <h5 class="text-primary mb-1">Menganalisis gambar...</h5>
+                        <p class="text-muted small mb-0">Mohon tunggu sebentar</p>
+                    </div>
+                    
+                    <div class="card-header bg-transparent border-0 pt-4 px-4">
+                        <ul class="nav nav-pills" id="uploadTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="upload-tab" data-bs-toggle="pill" data-bs-target="#upload-pane" type="button">
+                                    <i class="bi bi-upload me-1"></i> Unggah File
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="camera-tab" data-bs-toggle="pill" data-bs-target="#camera-pane" type="button">
+                                    <i class="bi bi-camera me-1"></i> Kamera
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="tab-content" id="uploadTabsContent">
+                            <!-- Upload Tab -->
+                            <div class="tab-pane fade show active" id="upload-pane" role="tabpanel">
+                                <form id="upload-form" enctype="multipart/form-data">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    
+                                    <div class="upload-area" id="upload-area">
+                                        <div id="upload-placeholder">
+                                            <i class="bi bi-cloud-arrow-up display-1 text-muted"></i>
+                                            <h5 class="mt-3">Seret & Lepas Gambar di Sini</h5>
+                                            <p class="text-muted">atau klik untuk memilih file</p>
+                                            <p class="small text-muted">
+                                                Format: JPG, PNG, GIF, BMP, WEBP, TIFF, HEIC (Maks. 10MB)
+                                            </p>
+                                        </div>
+                                        <div id="preview-container" class="d-none">
+                                            <img id="preview-image" class="preview-image" src="" alt="Preview">
+                                            <p class="mt-2 mb-0 text-muted" id="file-name"></p>
+                                        </div>
+                                    </div>
+                                    <input type="file" id="file-input" name="file" accept="image/*" class="d-none">
+                                    
+                                    <div class="d-flex gap-2 mt-3">
+                                        <button type="submit" id="analyze-btn" class="btn btn-primary btn-lg flex-grow-1" disabled>
+                                            <i class="bi bi-cpu me-2"></i>Analisis Gambar
+                                        </button>
+                                        <button type="button" id="clear-btn" class="btn btn-outline-secondary btn-lg d-none">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <!-- Camera Tab -->
+                            <div class="tab-pane fade" id="camera-pane" role="tabpanel">
+                                <div class="camera-container">
+                                    <video id="camera-video" autoplay playsinline class="d-none"></video>
+                                    <canvas id="camera-canvas" class="d-none"></canvas>
+                                    <img id="camera-preview" class="preview-image d-none" alt="Captured">
+                                    
+                                    <div id="camera-placeholder" class="text-center py-5">
+                                        <i class="bi bi-camera display-1 text-muted"></i>
+                                        <h5 class="mt-3">Kamera Belum Aktif</h5>
+                                        <p class="text-muted">Klik tombol di bawah untuk mengaktifkan kamera</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex gap-2 mt-3 justify-content-center">
+                                    <button type="button" id="start-camera-btn" class="btn btn-outline-primary btn-lg">
+                                        <i class="bi bi-camera-video me-2"></i>Aktifkan Kamera
+                                    </button>
+                                    <button type="button" id="capture-btn" class="btn btn-primary btn-lg d-none">
+                                        <i class="bi bi-camera me-2"></i>Ambil Foto
+                                    </button>
+                                    <button type="button" id="retake-btn" class="btn btn-outline-secondary btn-lg d-none">
+                                        <i class="bi bi-arrow-clockwise me-2"></i>Ulangi
+                                    </button>
+                                    <button type="button" id="analyze-camera-btn" class="btn btn-success btn-lg d-none">
+                                        <i class="bi bi-cpu me-2"></i>Analisis
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Result Section -->
+                        <div id="result-section" class="mt-4 d-none">
+                            <hr>
+                            <h5 class="fw-bold mb-3"><i class="bi bi-clipboard-data me-2"></i>Hasil Analisis</h5>
+                            <div id="result-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Guide Card -->
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-lightbulb text-warning me-2"></i>Panduan Penggunaan
+                        </h5>
+                        <ul class="list-unstyled mb-0">
+                            <li class="mb-3 d-flex align-items-start">
+                                <span class="badge bg-primary rounded-circle me-3 flex-shrink-0">1</span>
+                                <span>Unggah foto wajah dengan pencahayaan yang baik</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <span class="badge bg-primary rounded-circle me-3 flex-shrink-0">2</span>
+                                <span>Pastikan wajah terlihat jelas dan tidak tertutup</span>
+                            </li>
+                            <li class="mb-3 d-flex align-items-start">
+                                <span class="badge bg-primary rounded-circle me-3 flex-shrink-0">3</span>
+                                <span>Gunakan foto dengan resolusi yang cukup</span>
+                            </li>
+                            <li class="d-flex align-items-start">
+                                <span class="badge bg-primary rounded-circle me-3 flex-shrink-0">4</span>
+                                <span>Tunggu hasil analisis dalam beberapa detik</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Recent History -->
+                <div class="card border-0 shadow-sm rounded-4">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="bi bi-clock-history text-info me-2"></i>Riwayat Terbaru
+                        </h5>
+                        {% if recent_predictions %}
+                        <ul class="list-group list-group-flush">
+                            {% for pred in recent_predictions %}
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge {% if pred.result_class == 'Normal' %}bg-success{% else %}bg-warning text-dark{% endif %} me-2">
+                                        {{ pred.result_class }}
+                                    </span>
+                                    <small class="text-muted">{{ pred.confidence_percentage }}</small>
+                                </div>
+                                <small class="text-muted">{{ pred.created_at.strftime('%d/%m %H:%M') }}</small>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <a href="{{ url_for('dashboard.history') }}" class="btn btn-sm btn-outline-primary w-100 mt-3">
+                            Lihat Semua Riwayat
+                        </a>
+                        {% else %}
+                        <p class="text-muted text-center mb-0">Belum ada riwayat analisis</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Camera Modal for Mobile -->
+<div class="modal fade" id="cameraModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-camera me-2"></i>Ambil Foto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" id="close-camera-modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <video id="modal-camera-video" autoplay playsinline style="width: 100%;"></video>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="btn btn-primary btn-lg rounded-circle" id="modal-capture-btn" style="width: 70px; height: 70px;">
+                    <i class="bi bi-camera fs-4"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

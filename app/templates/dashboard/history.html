@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Riwayat Analisis - BrightStart{% endblock %}
+
+{% block content %}
+<div class="history-page py-4">
+    <div class="container">
+        <!-- Header -->
+        <div class="row mb-4">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                        <li class="breadcrumb-item active">Riwayat</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold mb-1">
+                    <i class="bi bi-clock-history text-primary me-2"></i>Riwayat Analisis
+                </h2>
+                <p class="text-muted">Daftar semua hasil analisis yang telah Anda lakukan</p>
+            </div>
+        </div>
+        
+        <!-- History Table -->
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-body p-4">
+                {% if predictions.items %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Hasil</th>
+                                <th>Keyakinan</th>
+                                <th>Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for pred in predictions.items %}
+                            <tr>
+                                <td>{{ (predictions.page - 1) * predictions.per_page + loop.index }}</td>
+                                <td>
+                                    <span class="badge {% if pred.result_class == 'Normal' %}bg-success{% else %}bg-warning text-dark{% endif %} fs-6">
+                                        {% if pred.result_class == 'Normal' %}
+                                        <i class="bi bi-check-circle me-1"></i>
+                                        {% else %}
+                                        <i class="bi bi-exclamation-circle me-1"></i>
+                                        {% endif %}
+                                        {{ pred.result_class }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 8px; width: 100px;">
+                                            <div class="progress-bar {% if pred.result_class == 'Normal' %}bg-success{% else %}bg-warning{% endif %}" 
+                                                 style="width: {{ pred.confidence * 100 }}%"></div>
+                                        </div>
+                                        <span class="small">{{ pred.confidence_percentage }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-muted">{{ pred.formatted_timestamp }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Pagination -->
+                {% if predictions.pages > 1 %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if predictions.has_prev %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.history', page=predictions.prev_num) }}">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for page_num in predictions.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                        <li class="page-item {% if page_num == predictions.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('dashboard.history', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                        {% endif %}
+                        {% endfor %}
+                        
+                        {% if predictions.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('dashboard.history', page=predictions.next_num) }}">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+                
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="mt-3">Belum Ada Riwayat</h5>
+                    <p class="text-muted">Anda belum melakukan analisis gambar.</p>
+                    <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Mulai Analisis
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
