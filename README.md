@@ -86,8 +86,8 @@
 
 1. **Clone repository**
    ```bash
-   git clone https://github.com/username/dsscan.git
-   cd dsscan
+   git clone https://github.com/AMRIZH/DSscan.git
+   cd DSscan
    ```
 
 2. **Buat virtual environment**
@@ -160,18 +160,8 @@ FLASK_ENV=development
 FLASK_DEBUG=1
 SECRET_KEY=your-super-secret-key
 
-# Default Admin Account
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=informatika
-
-# Model Configuration
-MODEL_DOWNLOAD_URL=https://github.com/your-repo/releases/download/v1.0/InceptionResNetV2.keras
-
 # CORS Configuration
 CORS_ORIGINS=*
-
-# Upload Configuration
-MAX_CONTENT_LENGTH=10485760
 
 # Logging
 LOG_LEVEL=DEBUG
